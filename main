@@ -1,0 +1,66 @@
+import random
+
+# Define the target function
+def target_function(x):
+    return x**2 + x + 1
+
+# Generate random individuals
+def generate_individual():
+    return [random.uniform(-10, 10) for _ in range(3)]  # Coefficients for ax^2 + bx + c
+
+# Evaluate individual fitness
+def evaluate(individual, x):
+    return abs(target_function(x) - (individual[0]*x**2 + individual[1]*x + individual[2]))
+
+# Generate initial population
+def generate_population(population_size):
+    return [generate_individual() for _ in range(population_size)]
+
+# Tournament selection
+def select(population, tournament_size):
+    tournament = random.sample(population, tournament_size)
+    return min(tournament, key=lambda x: evaluate(x, 0))
+
+# Blend crossover
+def crossover(parent1, parent2, alpha=0.5):
+    child = []
+    for p1, p2 in zip(parent1, parent2):
+        child.append(alpha * p1 + (1 - alpha) * p2)
+    return child
+
+# Gaussian mutation
+def mutate(individual, mu=0, sigma=1, indpb=0.2):
+    for i in range(len(individual)):
+        if random.random() < indpb:
+            individual[i] += random.gauss(mu, sigma)
+    return individual
+
+# Main function
+def main():
+    random.seed(42)
+
+    # Parameters
+    population_size = 100
+    generations = 50
+    tournament_size = 3
+
+    # Generate initial population
+    population = generate_population(population_size)
+
+    # Evolve the population
+    for gen in range(generations):
+        offspring = []
+        for _ in range(population_size):
+            parent1 = select(population, tournament_size)
+            parent2 = select(population, tournament_size)
+            child = crossover(parent1, parent2)
+            child = mutate(child)
+            offspring.append(child)
+        population = offspring
+
+    # Print the best individual
+    best_individual = min(population, key=lambda x: evaluate(x, 0))
+    print("Best individual:", best_individual)
+
+if __name__ == "__main__":
+    main()
